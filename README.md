@@ -1,6 +1,6 @@
 # This tool allows you to patch your Scrap Mechanic game!
 
-##What is a patch? 
+## What is a patch? 
 A patch is essentially a mod, like you are familiar with. However, a patch modifies the Scrap Mechanic executable, raw binary!
 
 ## What can it do? 
