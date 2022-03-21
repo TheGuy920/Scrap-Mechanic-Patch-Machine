@@ -25,4 +25,5 @@ You can download it directly from the GitHub page [Latest GitHub Release](https:
 
 ## Helpful Contributors: 
 [TechnologicNick](https://steamcommunity.com/id/TechnologicNick/)
+
 [Turbo Biscuit](https://steamcommunity.com/id/trbodev/)
