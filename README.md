@@ -20,6 +20,7 @@ You can download it directly from the GitHub page [Latest GitHub Release](https:
 
 ## This is great! What do I do next? 
 ![Image](https://i.imgur.com/p7Fv1Z6.gif)
+
 [Steam Link](https://steamcommunity.com/sharedfiles/filedetails/?id=2782732282)
 
 ## Helpful Contributors: 
