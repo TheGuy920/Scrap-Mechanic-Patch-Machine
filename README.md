@@ -16,17 +16,11 @@ A red patch means 1 of 2 things. Either the patch itself has not been tested on 
 If there was a recent update to the game, just be patient while the patches are updated for your version. If there was not a recent update, you made need to [verify your files](https://www.youtube.com/watch?v=4tTMRLhN72U)
 
 ## How do I use it? 
-You can download it directly from the GitHub page [Latest GitHub Release](https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine/releases) or subscribe to the mod, and use it from the mod folder
-
-#### Instructions:
- - Go to where you installed steam (usually here):
-```C:\Program Files (x86)\Steam\```
- - Then navigate to the mod download folder:
-```\steamapps\workshop\content\387990\2782732282```
- - Run the **```Scrap Mechanic Patch Machine.exe```** and enjoy!
+You can download it directly from the GitHub page [Latest GitHub Release](https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine/releases) or compile it yourself
 
 ## This is great! What do I do next? 
 ![Image](https://i.imgur.com/p7Fv1Z6.gif)
+[Steam Link](https://steamcommunity.com/sharedfiles/filedetails/?id=2782732282)
 
 ## Helpful Contributors: 
 [TechnologicNick](https://steamcommunity.com/id/TechnologicNick/)
