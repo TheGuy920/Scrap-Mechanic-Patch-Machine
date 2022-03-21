@@ -18,7 +18,7 @@ If there was a recent update to the game, just be patient while the patches are 
 ## How do I use it? 
 You can download it directly from the GitHub page [Latest GitHub Release](https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine/releases) or subscribe to the mod, and use it from the mod folder
 
-###Instructions:
+### Instructions:
  - Go to where you installed steam (usually here):
 ```C:\Program Files (x86)\Steam\```
  - Then navigate to the mod download folder:
