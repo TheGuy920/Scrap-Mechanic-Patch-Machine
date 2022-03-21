@@ -1,0 +1,10 @@
+﻿<Application x:Class="smp.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Windows/Loading.xaml"
+             Startup="Initialize" DispatcherUnhandledException="HandleException"
+             Exit="AppExit">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
