@@ -23,7 +23,7 @@ You can download it directly from the GitHub page [Latest GitHub Release](https:
 ```C:\Program Files (x86)\Steam\```
  - Then navigate to the mod download folder:
 ```\steamapps\workshop\content\387990\2782732282```
- - Run the **Scrap Mechanic Patch Machine.exe** and enjoy!
+ - Run the **```Scrap Mechanic Patch Machine.exe```** and enjoy!
 
 ## This is great! What do I do next? 
 ![Image](https://i.imgur.com/p7Fv1Z6.gif)
