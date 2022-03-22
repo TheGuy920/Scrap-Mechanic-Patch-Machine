@@ -5,30 +5,31 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>embedded</DebugType>
     <StartupObject>smp.App</StartupObject>
     <ApplicationIcon>sm.ico</ApplicationIcon>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     <SignAssembly>True</SignAssembly>
-    <Copyright>TheGuy920 2022</Copyright>
-    <PackageIcon>sm.png</PackageIcon>
+    <Copyright>TheGuy920 © 2022</Copyright>
+    <PackageIcon></PackageIcon>
     <RepositoryUrl>https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine</RepositoryUrl>
     <PackageLicenseFile>D:\Documents\GitHub\Scrap-Mechanic-Offline-Patch\LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <AssemblyName>Patch Machine</AssemblyName>
+    <Company>TGO Inc</Company>
+    <Product>Scrap Mechanic Patch Machine</Product>
+    <Description>Manages available patches for users version of Scrap Mechanic</Description>
+    <Authors>TheGuy920</Authors>
+    <PackageProjectUrl>https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine</PackageProjectUrl>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="sm.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\..\..\Pictures\sm.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

@@ -33,9 +33,15 @@ namespace smp
         public static void RestartApp(string args = null)
         {
             var location = Assembly.GetExecutingAssembly().Location;
+            
             if (location.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
                 location = Path.Combine(Path.GetDirectoryName(location)!, Path.GetFileNameWithoutExtension(location) + ".exe");
-            Process.Start(location, args ?? string.Empty);
+
+            if (location != null)
+                Process.Start(location, args ?? string.Empty);
+            else
+                throw new Exception("Unable to restart. Please shutdown instead");            
+            
             Application.Current.Shutdown();
         }
     }

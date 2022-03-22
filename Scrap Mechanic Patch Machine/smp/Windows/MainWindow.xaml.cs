@@ -9,8 +9,6 @@ using System.Windows;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace smp
 {
@@ -41,6 +39,9 @@ namespace smp
 
             Activated += GetMainWindow.MainWindow_Activated;
             InitializeComponent();
+
+            Activate();
+            Focus();
         }
 
         private void MainWindow_Activated(object? sender, EventArgs e)
@@ -117,27 +118,34 @@ namespace smp
                     return game_path;
             }
 
-            throw new Exception("Scrap Mechanic not detected");
+            throw new Exception("Scrap Mechanic not detected. Check your steam installation");
         }
         public static GameInfo FindGameVersion(string sm_path)
         {
-            // Open game binary as fs
-            FileStream stream = new FileStream(sm_path, FileMode.Open);
+            try
+            {
+                // Open game binary as fs
+                FileStream stream = new FileStream(sm_path, FileMode.Open);
 
-            // The cryptographic service provider.
-            SHA256 Sha256 = SHA256.Create();
+                // The cryptographic service provider.
+                SHA256 Sha256 = SHA256.Create();
 
-            // Computes game hash
-            byte[] GameHashByteArray = new byte[] { };
-            GameHashByteArray = Sha256.ComputeHash(stream);
+                // Computes game hash
+                byte[] GameHashByteArray = new byte[] { };
+                GameHashByteArray = Sha256.ComputeHash(stream);
 
-            // Close stream
-            stream.Close();
+                // Close stream
+                stream.Close();
 
-            // Byte array to string
-            string GameHash = string.Join(null, Array.ConvertAll(GameHashByteArray, s => s.ToString("x")));
+                // Byte array to string
+                string GameHash = string.Join(null, Array.ConvertAll(GameHashByteArray, s => s.ToString("x")));
 
-            return GameVersion.GetVersion(GameHash);
+                return GameVersion.GetVersion(GameHash);
+            }
+            catch (IOException e)
+            {
+                throw new IOException("Please close Scrap Mechanic and try again", e.InnerException);
+            }
         }
         public static void ScrapeVersion(string location)
         {

@@ -1,16 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Threading;
 
 namespace smp
@@ -23,6 +12,7 @@ namespace smp
         private Timer t;
         public Loading()
         {
+            Topmost = true;
             InitializeComponent();
         }
 
@@ -42,6 +32,12 @@ namespace smp
         {
             App.GetApp.MainWindow.Show();
             Close();
+        }
+
+        private void Window_LostFocus(object sender, RoutedEventArgs e)
+        {
+            Activate();
+            Focus();
         }
     }
 }
