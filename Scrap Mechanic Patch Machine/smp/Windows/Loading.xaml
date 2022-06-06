@@ -5,12 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" WindowStartupLocation="CenterScreen" WindowStyle="None" LostFocus="Window_LostFocus"
         Title="Loading" Height="75" Width="300" ResizeMode="NoResize" Loaded="Window_Loaded">
-    <Border BorderBrush="Black" BorderThickness="1">
+    <Border BorderBrush="#FF000000" BorderThickness="1">
         <Grid>
-            <TextBox x:Name="Status" Margin="10,10,10,40" VerticalContentAlignment="Center" BorderThickness="0" IsReadOnly="True">Loading critical game and patch information...</TextBox>
-            <ProgressBar x:Name="Progress" Value="0" Margin="10,40,10,10" IsIndeterminate="True">
-            
-            </ProgressBar>
+            <TextBox Name="Status" Margin="10,10,10,40" VerticalContentAlignment="Center" BorderThickness="0" IsReadOnly="True">Loading critical game and patch information...</TextBox>
+            <ProgressBar Name="Progress" Value="0" Margin="10,40,10,10" IsIndeterminate="True" />
         </Grid>
     </Border>
 </Window>

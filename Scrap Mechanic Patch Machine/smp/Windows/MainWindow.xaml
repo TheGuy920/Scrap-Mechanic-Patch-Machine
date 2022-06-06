@@ -12,53 +12,58 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip">
     <Window.Resources>
-        <DataTemplate x:Key="PatchTemplate">
-            <Border Width="300" Height="75" VerticalAlignment="Top" BorderBrush="LightGray" BorderThickness="1" Margin="5">
-                <Grid>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBox VerticalAlignment="Center" Margin="10,0,0,30" Width="265" FontSize="16"
-                                         BorderThickness="0" IsReadOnly="True" HorizontalContentAlignment="Center">Name Of Patch</TextBox>
-                        <CheckBox VerticalAlignment="Center" Margin="0,0,0,30" Tag="0"></CheckBox>
-                    </StackPanel>
-                    <TextBox Margin="10,30,23,10" BorderThickness="0" FontSize="10" VerticalAlignment="Center" HorizontalContentAlignment="Center" TextWrapping="Wrap">Description of patch here</TextBox>
-                    <Grid Background="Red" Opacity="0.2" PreviewMouseUp="Button_PreviewMouseUp" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" PreviewMouseDown="Grid_PreviewMouseDown">
+        <ResourceDictionary>
+            <DataTemplate x:Key="PatchTemplate">
+                <Border Width="300" Height="75" VerticalAlignment="Top" BorderBrush="#FFD3D3D3" BorderThickness="1" Margin="5">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox VerticalAlignment="Center" Margin="10,0,0,30" Width="265" FontSize="16" BorderThickness="0" IsReadOnly="True" HorizontalContentAlignment="Center">Name Of Patch</TextBox>
+                            <CheckBox VerticalAlignment="Center" Margin="0,0,0,30" Tag="0" />
+                        </StackPanel>
+                        <TextBox Margin="10,30,23,10" BorderThickness="0" FontSize="10" VerticalAlignment="Center" HorizontalContentAlignment="Center" TextWrapping="Wrap">Description of patch here</TextBox>
+                        <Grid Background="#FFFF0000" Opacity="0.2" PreviewMouseUp="Button_PreviewMouseUp" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" PreviewMouseDown="Grid_PreviewMouseDown" />
                     </Grid>
-                </Grid>
-            </Border>
-        </DataTemplate>
+                </Border>
+            </DataTemplate>
+        </ResourceDictionary>
     </Window.Resources>
     <Grid>
-        <Border VerticalAlignment="Top" Margin="10,5,10,0" BorderThickness="1" BorderBrush="Gray">
+        <Border VerticalAlignment="Top" Margin="10,5,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Margin="5,0,5,0">Location:</TextBlock>
-                <TextBox x:Name="GAMEDIR" Foreground="Green" IsReadOnly="True" BorderThickness="0" Background="Transparent">C:\SCRAP\MECHANIC\PATH\</TextBox>
+                <TextBox Name="GAMEDIR" Foreground="#FF008000" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">C:\SCRAP\MECHANIC\PATH\</TextBox>
             </StackPanel>
         </Border>
-        <Border VerticalAlignment="Top" Margin="10,30,10,0" BorderThickness="1" BorderBrush="Gray">
+        <Border VerticalAlignment="Top" Margin="10,30,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5,0,5,0">Version: </TextBlock>
-                <TextBox x:Name="GAMEVER" Foreground="Red" IsReadOnly="True" BorderThickness="0" Background="Transparent">0.5.0 Build 500</TextBox>
+                <TextBlock Margin="5,0,5,0">Version:</TextBlock>
+                <TextBox Name="GAMEVER" Foreground="#FFFF0000" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">0.5.0 Build 500</TextBox>
             </StackPanel>
         </Border>
-        <Border VerticalAlignment="Top" Margin="10,60,10,0" BorderThickness="1" BorderBrush="Gray">
+        <Border VerticalAlignment="Top" Margin="10,60,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Margin="5,0,5,0">Patches Installed:</TextBlock>
-                <TextBox x:Name="PATCHCOUNT" Foreground="Orange" IsReadOnly="True" BorderThickness="0" Background="Transparent">0</TextBox>
+                <TextBox Name="PATCHCOUNT" Foreground="#FFFFA500" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">0</TextBox>
             </StackPanel>
         </Border>
-        <Border Margin="10,90,10,50" BorderThickness="1" BorderBrush="Gray">
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden" x:Name="SCROLL" VerticalScrollBarVisibility="Visible" CanContentScroll="True">
-                <WrapPanel Orientation="Horizontal" x:Name="PatchListPanel" Width="{Binding ActualWidth, ElementName=SCROLL}">
-                    
-                </WrapPanel>
+        <Border VerticalAlignment="Top" Margin="10,90,10,0" BorderThickness="1" BorderBrush="#FF808080">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Margin="5,0,5,0">Game Hash:</TextBlock>
+                <TextBox Name="GAMEHASH" Foreground="#FFFFA500" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">abc123def456ghi789jkl123mno456pqr789stu123vwx78900z</TextBox>
+            </StackPanel>
+        </Border>
+        <Border Margin="10,120,10,50" BorderThickness="1" BorderBrush="#FF808080">
+            <ScrollViewer Name="SCROLL" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Visible" CanContentScroll="True">
+                <WrapPanel Name="PatchListPanel" Orientation="Horizontal" Width="{Binding ActualWidth, ElementName=SCROLL}" />
             </ScrollViewer>
         </Border>
         <StackPanel Margin="10,90,10,10" VerticalAlignment="Bottom" Height="30" Orientation="Horizontal" HorizontalAlignment="Left">
-            <Button x:Name="REMOVEALL" Width="100" PreviewMouseUp="REMOVEALL_PreviewMouseUp">Remove All</Button>
+            <Button Name="REMOVEALL" Width="100" PreviewMouseUp="REMOVEALL_PreviewMouseUp">Remove All</Button>
+            <TextBlock Name="AssemblyVersion" Margin="10,5,5,5" VerticalAlignment="Center" FontSize="12">App Version</TextBlock>
         </StackPanel>
         <StackPanel Margin="10,90,10,10" VerticalAlignment="Bottom" Height="30" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="APPLY" Width="100" IsEnabled="False" PreviewMouseUp="APPLY_PreviewMouseUp">Apply</Button>
-            <Button x:Name="CANCEL" Width="100" IsEnabled="False" PreviewMouseUp="CANCEL_PreviewMouseUp">Cancel</Button>
+            <Button Name="APPLY" Width="100" IsEnabled="False" PreviewMouseUp="APPLY_PreviewMouseUp">Apply</Button>
+            <Button Name="CANCEL" Width="100" IsEnabled="False" PreviewMouseUp="CANCEL_PreviewMouseUp">Cancel</Button>
         </StackPanel>
     </Grid>
 </Window>

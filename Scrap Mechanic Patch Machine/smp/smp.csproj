@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -25,8 +25,12 @@
     <Description>Manages available patches for users version of Scrap Mechanic</Description>
     <Authors>TheGuy920</Authors>
     <PackageProjectUrl>https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine</PackageProjectUrl>
-    <Version>1.0.1</Version>
+    <Version>1.7.32.808</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\update.ps1" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="sm.ico" />
@@ -36,5 +40,17 @@
     <PackageReference Include="Microsoft.AppCenter.Analytics" Version="4.5.0" />
     <PackageReference Include="Microsoft.AppCenter.Crashes" Version="4.5.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\update.ps1" />
+  </ItemGroup>
+	
+  <Target Name="AfterPublish" AfterTargets="Publish">
+    <Exec Command="C:\Users\Matthew\source\repos\publishutil\publishutil\bin\Debug\net6.0\publishutil.exe 1" />
+  </Target>
+	
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="C:\Users\Matthew\source\repos\publishutil\publishutil\bin\Debug\net6.0\publishutil.exe 0" />
+  </Target>
 
 </Project>
