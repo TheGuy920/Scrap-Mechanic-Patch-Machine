@@ -28,7 +28,7 @@ namespace smp
 
 		public Loading()
 		{
-			base.Topmost = true;
+			Topmost = true;
 			InitializeComponent();
 		}
 
@@ -42,8 +42,8 @@ namespace smp
 			using HttpContent content = response.Content;
 			string api_results = content.ReadAsStringAsync().Result;
 			stats = JObject.Parse(api_results);
-			Version gitV = Version.Parse((string?)stats!["tag_name"]);
-			Version asmV = Assembly.GetExecutingAssembly().GetName().Version;
+			Version gitV = Version.Parse((string)stats!["tag_name"]!);
+			Version asmV = Assembly.GetExecutingAssembly().GetName().Version!;
 			if (gitV.CompareTo(asmV) > 0)
 			{
 				Status.Text = "Downloading new update...";
@@ -52,41 +52,41 @@ namespace smp
 			}
 			if (gitV.CompareTo(asmV) < 0)
 			{
-				MainWindow.GetMainWindow!.ApplicationVersion = asmV.ToString() + " - Developer Edition";
+				MainWindow.GetMainWindow!.ApplicationVersion = asmV!.ToString() + " - Developer Edition";
 			}
 			else
 			{
-				MainWindow.GetMainWindow!.ApplicationVersion = asmV.ToString() + " - Main";
+				MainWindow.GetMainWindow!.ApplicationVersion = asmV!.ToString() + " - Main";
 			}
 			CloseSplashT = new Timer(CloseSplash, null, new TimeSpan(0, 0, 0, 1, 500), new TimeSpan(0, 0, 0, 0, -1));
 		}
 
 		private void Update(object? info)
 		{
-			string latestVurl = (string?)stats!["assets"]![0]!["browser_download_url"];
+			string latestVurl = (string)stats!["assets"]![0]!["browser_download_url"]!;
 			using HttpResponseMessage response = new HttpClient().GetAsync(latestVurl).Result;
 			using HttpContent FileContent = response.Content;
 			FileContent.CopyToAsync(new FileStream(Path.Combine(Utilities.GetAssemblyDirectory(), "update.zip"), FileMode.Create));
 			Utilities.DeleteAndExtract(Utilities.GetAssemblyDirectory());
-			base.Dispatcher.Invoke(base.Close);
-			base.Dispatcher.Invoke(Application.Current.Shutdown);
+			Dispatcher.Invoke(Close);
+			Dispatcher.Invoke(Application.Current.Shutdown);
 		}
 
 		private void CloseSplash(object? info)
 		{
-			base.Dispatcher.Invoke(CloseSplashMain);
+			Dispatcher.Invoke(CloseSplashMain);
 		}
 
 		private void CloseSplashMain()
 		{
-			base.Dispatcher.Invoke(App.GetApp!.MainWindow.Show);
-			base.Dispatcher.Invoke(base.Close);
+			Dispatcher.Invoke(App.GetApp!.MainWindow.Show);
+			Dispatcher.Invoke(Close);
 		}
 
 		private void Window_LostFocus(object sender, RoutedEventArgs e)
 		{
-			base.Dispatcher.Invoke((Func<bool>)base.Activate);
-			base.Dispatcher.Invoke((Func<bool>)Focus);
+			Dispatcher.Invoke(Activate);
+			Dispatcher.Invoke(Focus);
 		}
 	}
 }

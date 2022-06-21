@@ -5,6 +5,8 @@ VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "smp", "smp\smp.csproj", "{DFE99A12-D614-4D1A-AC57-F690BADF316B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PatchDiffAnalyzer", "PatchDiffAnalyzer\PatchDiffAnalyzer.csproj", "{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{DFE99A12-D614-4D1A-AC57-F690BADF316B}.Release|x64.Build.0 = Release|x64
 		{DFE99A12-D614-4D1A-AC57-F690BADF316B}.Release|x86.ActiveCfg = Release|x86
 		{DFE99A12-D614-4D1A-AC57-F690BADF316B}.Release|x86.Build.0 = Release|x86
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Debug|x64.Build.0 = Debug|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Debug|x86.Build.0 = Debug|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Release|x64.ActiveCfg = Release|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Release|x64.Build.0 = Release|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Release|x86.ActiveCfg = Release|Any CPU
+		{420D8378-7934-4ED6-AAAD-5F22D32EE7CB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

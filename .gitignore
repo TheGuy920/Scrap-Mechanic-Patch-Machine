@@ -1,4 +1,8 @@
 /Scrap Mechanic Patch Machine/smp/bin/*
 /Scrap Mechanic Patch Machine/smp/obj/*
 /Scrap Mechanic Patch Machine/.vs/*
+/Scrap Mechanic Patch Machine/PatchDiffAnalyzer/bin/*
+/Scrap Mechanic Patch Machine/PatchDiffAnalyzer/obj/*
 *.user
+*.pdb
+*.pubxml

@@ -19,8 +19,6 @@ public static class Operations
 		stream.CopyTo(memoryStream);
 		byte[] sm = memoryStream.ToArray();
 
-		//File.WriteAllText("./sm.txt", string.Join("", Convert.ToHexString(search)) + "\n\n" + string.Join("", Convert.ToHexString(sm)));
-
 		int position = sm.Locate(search);
 		if (position < 10)
 		{
@@ -49,6 +47,8 @@ public static class Operations
 			{
 				if (!b4.equals(info.Patchbytes))
 				{
+					Debug.WriteLine(Convert.ToHexString(b4));
+					Debug.WriteLine(Convert.ToHexString(info.Patchbytes));
 					throw new Exception("Not target bytes. Version support error?");
 				}
 				byte[] patchbytes = info.Targetbytes;
@@ -65,6 +65,8 @@ public static class Operations
 			{
 				if (!b3.Equals(info.Targetbyte))
 				{
+					Debug.WriteLine(Convert.ToHexString(new byte[] { b3 }));
+					Debug.WriteLine(Convert.ToHexString(new byte[] { info.Targetbyte }));
 					throw new Exception("Not target byte. Version support error?");
 				}
 				stream.WriteByte(info.Patchbyte);

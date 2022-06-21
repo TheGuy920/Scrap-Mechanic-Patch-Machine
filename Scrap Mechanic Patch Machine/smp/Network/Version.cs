@@ -15,7 +15,11 @@ namespace smp.Network
         {
             try
             {
-                return ParseVersion(new WebClient().DownloadString("https://raw.githubusercontent.com/TheGuy920/Scrap-Mechanic-Patch-Machine/main/Versions/" + hash), patched, hash);
+                string url = "https://raw.githubusercontent.com/TheGuy920/Scrap-Mechanic-Patch-Machine/main/Versions/" + hash;
+#if DEBUG
+                Debug.Log(url);
+#endif
+                return ParseVersion(new WebClient().DownloadString(url), patched, hash);
             }
             catch (WebException ex)
             {

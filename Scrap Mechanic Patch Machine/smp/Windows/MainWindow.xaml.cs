@@ -56,15 +56,15 @@ namespace smp
 			PatchesToApply = new List<string>();
 			base.Activated += GetMainWindow!.MainWindow_Activated;
 			InitializeComponent();
-			LoadUIInfo();
 			LocalWebClient!.DefaultRequestHeaders.Add("User-Agent", "smpm");
 			Activate();
 			Focus();
+			LoadUIInfo();
 		}
 
-		private void LoadUIInfo() 
+		private void LoadUIInfo()
 		{
-			GAMEHASH.Text = GameHash;
+			GAMEHASH.Text = Convert.ToHexString(GetGameHash(GameDirectory!));
 			GAMEDIR.Text = GameDirectory;
 			GAMEVER.Text = ((GameVersionInfo.Version == null) ? "Unknown" : GameVersionInfo.Version);
 			if (GameVersionInfo.PatchesInstalled > 0)
@@ -73,18 +73,15 @@ namespace smp
 			}
 			PATCHCOUNT.Text = GameVersionInfo.PatchesInstalled.ToString();
 			AssemblyVersion.Text = ApplicationVersion;
-		}
-
-		private void UpdateUI()
-        {
-			GAMEHASH.Text = string.Join(null, Convert.ToHexString(GetGameHash(GameDirectory)));
-			PATCHCOUNT.Text = GameVersionInfo.PatchesInstalled.ToString();
-			GAMEVER.Text = ((GameVersionInfo.Version == null) ? "Unknown" : GameVersionInfo.Version);
-			if (GameVersionInfo.PatchesInstalled > 0)
-			{
-				GAMEVER.Text += " - PATCHED";
-			}
-
+#if DEBUG
+			Debug.Log("UI Updated");
+			Debug.Log(GameDirectory!);
+			Debug.Log(GameVersionInfo.PatchesInstalled);
+			Debug.Log(GameHash!);
+			Debug.Log(Convert.ToHexString(GetGameHash(GameDirectory)));
+			Debug.Log((GameVersionInfo.Version == null) ? "Unknown" : GameVersionInfo.Version);
+			Debug.Log((ApplicationVersion == null) ? "Version Not Loaded" : ApplicationVersion);
+#endif
 		}
 
 		private void MainWindow_Activated(object? sender, EventArgs e)
@@ -132,15 +129,26 @@ namespace smp
 			string? steamPath = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam", "InstallPath", null) as string;
 			if (steamPath is null) throw new Exception("Steam not detected");
 
-			string[] array = File.ReadAllText(
-				Path.Combine(steamPath, "steamapps", "libraryfolders.vdf")).Split('"');
+			string FileContents = File.ReadAllText(Path.Combine(steamPath, "steamapps", "libraryfolders.vdf"));
+
+#if DEBUG
+			Debug.Log($"Loaded Steam Location: {steamPath}");
+			Debug.Log($"File Contents:\n{FileContents}\n================================================================================================\n");
+#endif
+			
+			string[] array = FileContents.Split('"');
 			
 			foreach (string path in array)
 			{
-				string game_path = Path.Combine(path, "steamapps", "common", "Scrap Mechanic", "Release", "ScrapMechanic.exe");
+				string game_path = Path.Combine(path, "steamapps", "common", "Scrap Mechanic", "Release", "ScrapMechanic.exe").Replace("\n", "");
+
+#if DEBUG
+				Debug.Log($"Checking Path: {game_path}");
+#endif
+
 				if (File.Exists(game_path))
 				{
-					return game_path.Replace("\\\\", "\\");
+					return game_path.Replace("\\\\", "\\").Replace("//", "/");
 				}
 			}
 			
@@ -164,7 +172,7 @@ namespace smp
 
 		public static GameInfo FindGameVersion(string sm_path)
 		{
-			string hash = string.Join(null, Convert.ToHexString(GetGameHash(sm_path)));
+			string hash = Convert.ToHexString(GetGameHash(sm_path)).ToLower();
 			return GameVersion.GetVersion(hash);
 		}
 
@@ -235,8 +243,6 @@ namespace smp
 						stream.WriteByte(info.Targetbyte);
 					}
 				}
-
-				//Debug.WriteLine(VersionPatchList.toString());
 
 				stream.Close();
 				stream = new FileStream(location, FileMode.Open);
@@ -375,6 +381,7 @@ namespace smp
 			PatchInfo v = patch.PatchInfo;
 			HttpClient? localWebClient = LocalWebClient;
 			string url = $"{BaseGitUrl}/Patches/{patch.PatchName}/{patch.PatchInfo.sHash}";
+			Debug.Log(url);
 			string[] contentList = localWebClient!.GetAsync(url).Result.Content.ReadAsStringAsync().Result.Split('\n');
 			string description = LocalWebClient!.GetAsync(BaseGitUrl + "/Patches/" + patch.PatchName + "/desc").Result.Content.ReadAsStringAsync().Result;
 			if (contentList[0].Length == 64 && !contentList[0].Contains(','))
@@ -428,7 +435,7 @@ namespace smp
 			{
 				REMOVEALL.IsEnabled = true;
 			}
-			UpdateUI();
+			LoadUIInfo();
 		}
 
 		private void Button_PreviewMouseUp(object sender, MouseButtonEventArgs e)

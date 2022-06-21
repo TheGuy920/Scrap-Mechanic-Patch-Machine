@@ -10,13 +10,13 @@ using System.Windows;
 
 namespace smp
 {
-    internal class Utilities
-    {
+	internal class Utilities
+	{
 		public static string GetAssemblyDirectory()
 		{
 			string location = Assembly.GetExecutingAssembly().Location;
 			string backupLocation = AppDomain.CurrentDomain.BaseDirectory;
-			location = Path.GetDirectoryName(location);
+			location = Path.GetDirectoryName(location)!;
 			if (!Directory.Exists(location))
 			{
 				return backupLocation;
@@ -50,7 +50,7 @@ namespace smp
 		{
 			string name2 = name;
 			string resourceName = Assembly.GetExecutingAssembly().GetManifestResourceNames().Single((string str) => str.EndsWith(name2));
-			using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+			using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)!;
 			using StreamReader reader = new StreamReader(stream);
 			return reader.ReadToEnd();
 		}
@@ -66,6 +66,32 @@ namespace smp
 			process.StartInfo.CreateNoWindow = true;
 			process.StartInfo.WorkingDirectory = currentDir;
 			process.Start();
+		}
+	}
+	internal class Debug
+	{
+		private static bool init = false;
+		public static void Log(object info)
+        {
+			string log = Path.Combine(Utilities.GetAssemblyDirectory(), "log.txt");
+			string time = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+			if (!init) {
+				File.AppendAllText(log, Environment.NewLine
+					+ "===================================================="
+					+ "===================================================="
+					+ Environment.NewLine
+					+ $"SCRAP MECHANIC PATCHMACHINE BOOT AND RECORD LOG {time}"
+					+ Environment.NewLine
+					+ "===================================================="
+					+ "====================================================");
+				init = !init;
+			}
+
+			File.AppendAllText(log, 
+				Environment.NewLine +
+				$"{time}: " +
+				info.ToString());
 		}
 	}
 }
