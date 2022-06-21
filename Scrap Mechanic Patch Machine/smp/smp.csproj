@@ -25,7 +25,7 @@
     <Description>Manages available patches for users version of Scrap Mechanic</Description>
     <Authors>TheGuy920</Authors>
     <PackageProjectUrl>https://github.com/TheGuy920/Scrap-Mechanic-Patch-Machine</PackageProjectUrl>
-    <Version>1.7.65.422</Version>
+    <Version>1.11.66.620</Version>
   </PropertyGroup>
 
   <ItemGroup>

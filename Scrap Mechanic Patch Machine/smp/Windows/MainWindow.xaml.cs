@@ -381,7 +381,9 @@ namespace smp
 			PatchInfo v = patch.PatchInfo;
 			HttpClient? localWebClient = LocalWebClient;
 			string url = $"{BaseGitUrl}/Patches/{patch.PatchName}/{patch.PatchInfo.sHash}";
+#if DEBUG
 			Debug.Log(url);
+#endif
 			string[] contentList = localWebClient!.GetAsync(url).Result.Content.ReadAsStringAsync().Result.Split('\n');
 			string description = LocalWebClient!.GetAsync(BaseGitUrl + "/Patches/" + patch.PatchName + "/desc").Result.Content.ReadAsStringAsync().Result;
 			if (contentList[0].Length == 64 && !contentList[0].Contains(','))
