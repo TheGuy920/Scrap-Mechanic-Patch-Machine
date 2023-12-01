@@ -60,8 +60,9 @@ namespace smp
             }
             else if (gitV.CompareTo(asmV) > 0)
             {
+                this.Status.Text = "Downloading new update...";
                 main.ApplicationVersion = asmV!.ToString() + " - Outdated";
-                Dispatcher.Invoke(Update);
+                this.Dispatcher.Invoke(Update);
             }
             else if (gitV.CompareTo(asmV) == 0)
             {
@@ -72,15 +73,17 @@ namespace smp
                 });
             }
         }
-
         private void Update()
         {
-            string latestVurl = (string)stats!["assets"]![0]!["browser_download_url"]!;
-            using HttpResponseMessage response = new HttpClient().GetAsync(latestVurl).Result;
-            using HttpContent FileContent = response.Content;
-            FileContent.CopyToAsync(new FileStream(Path.Combine(Utilities.GetAssemblyDirectory(), "update.zip"), FileMode.Create));
-            Utilities.DeleteAndExtract(Utilities.GetAssemblyDirectory());
-            Dispatcher.Invoke(Application.Current.Shutdown);
+            Task.Run(() => 
+            { 
+                string latestVurl = (string)stats!["assets"]![0]!["browser_download_url"]!;
+                using HttpResponseMessage response = new HttpClient().GetAsync(latestVurl).Result;
+                using HttpContent FileContent = response.Content;
+                FileContent.CopyToAsync(new FileStream(Path.Combine(Utilities.GetAssemblyDirectory(), "update.zip"), FileMode.Create));
+                Utilities.DeleteAndExtract(Utilities.GetAssemblyDirectory());
+                this.Dispatcher.Invoke(Application.Current.Shutdown);
+            });
         }
 
         private void CloseSplashMain(Task t)
