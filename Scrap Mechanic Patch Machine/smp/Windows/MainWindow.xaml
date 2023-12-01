@@ -17,10 +17,10 @@
                 <Border Width="300" Height="75" VerticalAlignment="Top" BorderBrush="#FFD3D3D3" BorderThickness="1" Margin="5">
                     <Grid>
                         <StackPanel Orientation="Horizontal">
-                            <TextBox VerticalAlignment="Center" Margin="10,0,0,30" Width="265" FontSize="16" BorderThickness="0" IsReadOnly="True" HorizontalContentAlignment="Center">Name Of Patch</TextBox>
+                            <TextBox VerticalAlignment="Center" Margin="10,0,0,30" Width="265" FontSize="16" BorderThickness="0" IsReadOnly="True" HorizontalContentAlignment="Center" FontFamily="Cascadia Mono SemiBold">Name Of Patch</TextBox>
                             <CheckBox VerticalAlignment="Center" Margin="0,0,0,30" Tag="0" />
                         </StackPanel>
-                        <TextBox Margin="10,30,23,10" BorderThickness="0" FontSize="10" VerticalAlignment="Center" HorizontalContentAlignment="Center" TextWrapping="Wrap">Description of patch here</TextBox>
+                        <TextBox Margin="10,30,23,10" BorderThickness="0" FontSize="12" VerticalAlignment="Center" HorizontalContentAlignment="Center" TextWrapping="Wrap" FontFamily="Segoe UI Variable Small Semibold" Foreground="#FF020c52">Description of patch here</TextBox>
                         <Grid Background="#FFFF0000" Opacity="0.2" PreviewMouseUp="Button_PreviewMouseUp" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" PreviewMouseDown="Grid_PreviewMouseDown" />
                     </Grid>
                 </Border>
@@ -30,26 +30,26 @@
     <Grid>
         <Border VerticalAlignment="Top" Margin="10,5,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5,0,5,0">Location:</TextBlock>
-                <TextBox Name="GAMEDIR" Foreground="#FF008000" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">C:\SCRAP\MECHANIC\PATH\</TextBox>
+                <TextBlock Margin="5,0,5,0" FontFamily="Consolas" FontSize="16" FontWeight="Bold">Location:</TextBlock>
+                <TextBox Name="GAMEDIR" VerticalAlignment="Center" Foreground="#FF008000" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF" FontFamily="Bahnschrift SemiBold" FontSize="14">C:\SCRAP\MECHANIC\PATH\</TextBox>
             </StackPanel>
         </Border>
         <Border VerticalAlignment="Top" Margin="10,30,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5,0,5,0">Version:</TextBlock>
-                <TextBox Name="GAMEVER" Foreground="#FFFF0000" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">0.5.0 Build 500</TextBox>
+                <TextBlock Margin="5,0,5,0" FontFamily="Consolas" FontSize="16" FontWeight="Bold">Version:</TextBlock>
+                <TextBox Name="GAMEVER" VerticalAlignment="Center" Foreground="#FFFF0000"  IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF" FontFamily="Arial Black">0.5.0 Build 500</TextBox>
             </StackPanel>
         </Border>
         <Border VerticalAlignment="Top" Margin="10,60,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5,0,5,0">Patches Installed:</TextBlock>
-                <TextBox Name="PATCHCOUNT" Foreground="#FFFFA500" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">0</TextBox>
+                <TextBlock  Margin="5,0,5,0" FontFamily="Consolas" FontSize="16" FontWeight="Bold">Patches Installed:</TextBlock>
+                <TextBox Name="PATCHCOUNT" Margin="0,1,0,0" Padding="0" Foreground="#FFb57500" VerticalAlignment="Center" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF" FontFamily="Arial Black">0</TextBox>
             </StackPanel>
         </Border>
         <Border VerticalAlignment="Top" Margin="10,90,10,0" BorderThickness="1" BorderBrush="#FF808080">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5,0,5,0">Game Hash:</TextBlock>
-                <TextBox Name="GAMEHASH" Foreground="#FFFFA500" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF">abc123def456ghi789jkl123mno456pqr789stu123vwx78900z</TextBox>
+                <TextBlock  VerticalAlignment="Center" Margin="5,0,2.5,0" FontFamily="Consolas" FontSize="16" FontWeight="Bold">Game Hash:</TextBlock>
+                <TextBox Name="GAMEHASH" VerticalAlignment="Center" Foreground="#FFb57500" IsReadOnly="True" BorderThickness="0" Background="#00FFFFFF" FontFamily="Cascadia Code" FontWeight="Bold" FontSize="14">abc123def456ghi789jkl123mno456pqr789stu123vwx78900z</TextBox>
             </StackPanel>
         </Border>
         <Border Margin="10,120,10,50" BorderThickness="1" BorderBrush="#FF808080">
@@ -62,7 +62,7 @@
             <TextBlock Name="AssemblyVersion" Margin="10,5,5,5" VerticalAlignment="Center" FontSize="12">App Version</TextBlock>
         </StackPanel>
         <StackPanel Margin="10,90,10,10" VerticalAlignment="Bottom" Height="30" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="APPLY" Width="100" IsEnabled="False" PreviewMouseUp="APPLY_PreviewMouseUp">Apply</Button>
+            <Button Margin="0,0,10,0" Name="APPLY" Width="100" IsEnabled="False" PreviewMouseUp="APPLY_PreviewMouseUp">Apply</Button>
             <Button Name="CANCEL" Width="100" IsEnabled="False" PreviewMouseUp="CANCEL_PreviewMouseUp">Cancel</Button>
         </StackPanel>
     </Grid>

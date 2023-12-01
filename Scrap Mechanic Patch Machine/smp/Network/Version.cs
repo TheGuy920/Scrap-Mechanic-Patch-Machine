@@ -1,4 +1,5 @@
 ﻿// smp.Network.GameVersion
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -11,35 +12,84 @@ namespace smp.Network
 {
     public static class GameVersion
     {
-        public static GameInfo GetVersion(string hash, bool patched = false)
+        static readonly DirectoryInfo CacheDirectory = new(Path.Combine(Utilities.GetAssemblyDirectory(), "Cache"));
+        static readonly DirectoryInfo VersionDirectory = new(Path.Combine(CacheDirectory.FullName, "Version"));
+        public static readonly DirectoryInfo PatchDirectory = new(Path.Combine(CacheDirectory.FullName, "Patches"));
+        public static void InitDirectories()
         {
+            if (!CacheDirectory.Exists)
+            {
+                CacheDirectory.Create();
+            }
+            if (!VersionDirectory.Exists)
+            {
+                VersionDirectory.Create();
+            }
+            if (!PatchDirectory.Exists)
+            {
+                PatchDirectory.Create();
+            }
+        }   
+        public static void CacheVersion(string hash, string content)
+        {
+            InitDirectories();
+            File.WriteAllText(Path.Combine(VersionDirectory.FullName, hash), content);
+        }
+        public static string? GetCache(string hash)
+        {
+            var file = new FileInfo(Path.Combine(VersionDirectory.FullName, hash));
+            if (file.Exists)
+            {
+                return File.ReadAllText(file.FullName);
+            }
+            return null;
+        }
+        public static GameInfo GetVersion(string hash)
+        {
+            string cached = GetCache(hash) ?? string.Empty;
+            // Debug.Log(cached);  
+            GameInfo cachedVersion = ParseVersion(cached, hash);
             try
             {
                 string url = "https://raw.githubusercontent.com/TheGuy920/Scrap-Mechanic-Patch-Machine/main/Versions/" + hash;
 #if DEBUG
                 Debug.Log(url);
 #endif
-                return ParseVersion(new WebClient().DownloadString(url), patched, hash);
+                string content = new WebClient().DownloadString(url);
+
+                CacheVersion(hash, content);
+
+                return ParseVersion(content, hash);
             }
             catch (WebException ex)
             {
-                if (new StreamReader(ex.Response!.GetResponseStream()).ReadToEnd().Equals("404: Not Found"))
+                try
                 {
-                    return new GameInfo() { sHash = hash };
+                    Stream? s = (ex.Response?.GetResponseStream()) ?? throw new WebException("No Internet?");
+                    if (new StreamReader(s).ReadToEnd().Equals("404: Not Found"))
+                    {
+                        return new GameInfo() { sHash = hash };
+                    }
+                }
+                catch (WebException)
+                {
+                    return string.IsNullOrWhiteSpace(cached) ? new GameInfo() { sHash = hash } : cachedVersion;
                 }
             }
-            throw new Exception("Uknown error fetching version");
+            return string.IsNullOrWhiteSpace(cached) ?
+                throw new ApplicationException("Uknown error fetching version")
+                : cachedVersion;
         }
 
-        public static GameInfo ParseVersion(string i, bool patched, string hash)
+        public static GameInfo ParseVersion(string i, string hash)
         {
             GameInfo v = default;
             string[] contentList = i.Split('\n').Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
-            if (contentList.Length != 1)
+            if (contentList.Length > 1)
                 throw new Exception("Version not supported: Length " + contentList.Length + "\r\nContent: " + i.Replace("\n","\\n"));
             
-            v.Version = contentList[0];
+            v.Version = contentList.Length > 0 ? contentList[0] : null;
             v.sHash = hash;
             v.bHash = Array.ConvertAll(hash.SplitInParts(2), (string s) => (byte)Convert.ToInt32(s, 16));
             return v;
@@ -71,28 +121,28 @@ namespace smp.Network
 
         public PatchInfo(PatchInfo patchInfo)
         {
-            Version = patchInfo.Version;
-            Description = patchInfo.Description;
-            sHash = patchInfo.sHash;
-            bHash = patchInfo.bHash;
-            Search = patchInfo.Search;
-            Patched = patchInfo.Patched;
-            ByteList = patchInfo.ByteList;
-            Targetbyte = patchInfo.Targetbyte;
-            Patchbyte = patchInfo.Patchbyte;
-            Targetbytes = patchInfo.Targetbytes;
-            Patchbytes = patchInfo.Patchbytes;
+            this.Version = patchInfo.Version;
+            this.Description = patchInfo.Description;
+            this.sHash = patchInfo.sHash;
+            this.bHash = patchInfo.bHash;
+            this.Search = patchInfo.Search;
+            this.Patched = patchInfo.Patched;
+            this.ByteList = patchInfo.ByteList;
+            this.Targetbyte = patchInfo.Targetbyte;
+            this.Patchbyte = patchInfo.Patchbyte;
+            this.Targetbytes = patchInfo.Targetbytes;
+            this.Patchbytes = patchInfo.Patchbytes;
         }
 
         public PatchInfo(GameInfo patchInfo)
         {
-            this = default(PatchInfo);
-            Version = patchInfo.Version;
-            sHash = patchInfo.sHash;
-            bHash = patchInfo.bHash;
+            this = default;
+            this.Version = patchInfo.Version;
+            this.sHash = patchInfo.sHash;
+            this.bHash = patchInfo.bHash;
         }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             DefaultInterpolatedStringHandler defaultInterpolatedStringHandler = new DefaultInterpolatedStringHandler(26, 3);
             defaultInterpolatedStringHandler.AppendLiteral("Version: ");
@@ -122,7 +172,7 @@ namespace smp.Network
 
     public struct GameInfo
     {
-        public string Version;
+        public string? Version;
 
         public int PatchesInstalled;
 
@@ -132,20 +182,20 @@ namespace smp.Network
 
         public GameInfo(GameInfo patchInfo)
         {
-            this = default(GameInfo);
+            this = default;
             this = patchInfo;
         }
 
         public GameInfo(PatchInfo patchInfo, int p = 0)
         {
-            this = default(GameInfo);
-            Version = patchInfo.Version;
-            sHash = patchInfo.sHash;
-            bHash = patchInfo.bHash;
-            PatchesInstalled = p;
+            this = default;
+            this.Version = patchInfo.Version;
+            this.sHash = patchInfo.sHash;
+            this.bHash = patchInfo.bHash;
+            this.PatchesInstalled = p;
         }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             return "Version: " + Version + "\nHash: " + sHash;
         }
@@ -159,7 +209,6 @@ namespace smp.Network
 
         public Patch(Patch patch)
         {
-            this = default(Patch);
             this = patch;
         }
     }

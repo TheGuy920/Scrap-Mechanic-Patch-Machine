@@ -17,7 +17,7 @@ static class Extensions
         {
             return 0;
         }
-        List<int> list = new List<int>();
+        List<int> list = new();
         for (int i = 0; i < self.Length; i++)
         {
             if (IsMatch(self, i, sub_array))
@@ -27,7 +27,7 @@ static class Extensions
         }
         if (list.Count > 1)
         {
-            DefaultInterpolatedStringHandler defaultInterpolatedStringHandler = new DefaultInterpolatedStringHandler(33, 1);
+            DefaultInterpolatedStringHandler defaultInterpolatedStringHandler = new(33, 1);
             defaultInterpolatedStringHandler.AppendLiteral("More than one instance detected: ");
             defaultInterpolatedStringHandler.AppendFormatted(list.Count);
             throw new Exception(defaultInterpolatedStringHandler.ToStringAndClear());

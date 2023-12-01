@@ -32,11 +32,11 @@ stream.Close();
 Console.WriteLine(Convert.ToHexString(GameHashByteArray).ToLower());
 
 stream = new FileStream(path, FileMode.Open);
-MemoryStream memoryStream = new MemoryStream();
+MemoryStream memoryStream = new();
 stream.CopyTo(memoryStream);
 byte[] sm = memoryStream.ToArray();
 
-stream = new FileStream(path.Replace(".exe", "-0.exe"), FileMode.Open);
+stream = new FileStream(path.Replace(".exe", "_old.exe"), FileMode.Open);
 memoryStream = new MemoryStream();
 stream.CopyTo(memoryStream);
 byte[] sm_m = memoryStream.ToArray();

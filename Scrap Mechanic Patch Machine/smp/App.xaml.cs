@@ -1,8 +1,13 @@
-﻿using System.Windows;
+﻿using System;
+using System.IO;
+using System.Net.Http;
+using System.Reflection;
+using System.Windows;
 using System.Windows.Threading;
 using Microsoft.AppCenter;
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
+using Newtonsoft.Json.Linq;
 
 namespace smp
 {
@@ -11,14 +16,14 @@ namespace smp
     /// </summary>
     public partial class App : Application
     {
-		public static App? GetApp { get; private set; }
+        public static App? GetApp { get; private set; }
 
 		private void Initialize(object sender, StartupEventArgs args)
 		{
 			AppCenter.Start("521e1419-cc08-4115-b795-feab38170224", typeof(Analytics), typeof(Crashes));
 			GetApp = this;
 			Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
-		}
+        }
 
 		private void AppExit(object sender, ExitEventArgs e)
 		{

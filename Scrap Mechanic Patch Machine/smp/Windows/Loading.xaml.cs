@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
@@ -20,66 +21,71 @@ namespace smp
     /// </summary>
     public partial class Loading : Window
     {
-		private Timer? CloseSplashT;
-
-		private Timer? UpdateT;
-
-		private JObject? stats;
-
-		public Loading()
+        private JObject? stats;
+        public Loading()
 		{
-			Topmost = true;
-			InitializeComponent();
+			this.Topmost = true;
+            this.InitializeComponent();
 		}
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			App.GetApp!.MainWindow = new MainWindow();
-			using HttpResponseMessage response = new HttpClient
-			{
-				DefaultRequestHeaders = { { "User-Agent", "smpm" } }
-			}.GetAsync("https://api.github.com/repos/TheGuy920/Scrap-Mechanic-Patch-Machine/releases/latest").Result;
-			using HttpContent content = response.Content;
-			string api_results = content.ReadAsStringAsync().Result;
-			stats = JObject.Parse(api_results);
-			Version gitV = Version.Parse((string)stats!["tag_name"]!);
-			Version asmV = Assembly.GetExecutingAssembly().GetName().Version!;
-			if (gitV.CompareTo(asmV) > 0)
-			{
-				Status.Text = "Downloading new update...";
-				UpdateT = new Timer(Update, null, new TimeSpan(0, 0, 0, 0, 10), new TimeSpan(0, 0, 0, 0, -1));
-				return;
-			}
-			if (gitV.CompareTo(asmV) < 0)
-			{
-				MainWindow.GetMainWindow!.ApplicationVersion = asmV!.ToString() + " - Developer Edition";
-			}
-			else
-			{
-				MainWindow.GetMainWindow!.ApplicationVersion = asmV!.ToString() + " - Main";
-			}
-			CloseSplashT = new Timer(CloseSplash, null, new TimeSpan(0, 0, 0, 1, 500), new TimeSpan(0, 0, 0, 0, -1));
-		}
+            MainWindow main = new();
+            App.GetApp!.MainWindow = main;
+            Version gitV;
+            Version asmV = Assembly.GetExecutingAssembly().GetName().Version!;
+            try
+            {
+                using HttpResponseMessage response = new HttpClient
+                {
+                    DefaultRequestHeaders = { { "User-Agent", "smpm" } }
+                }.GetAsync("https://api.github.com/repos/TheGuy920/Scrap-Mechanic-Patch-Machine/releases/latest").Result;
+                using HttpContent content = response.Content;
+                string api_results = content.ReadAsStringAsync().Result;
+                stats = JObject.Parse(api_results);
+                gitV = Version.Parse((string)stats!["tag_name"]!);
+            }
+            catch
+            {
+                gitV = asmV;
+            }
 
-		private void Update(object? info)
-		{
-			string latestVurl = (string)stats!["assets"]![0]!["browser_download_url"]!;
-			using HttpResponseMessage response = new HttpClient().GetAsync(latestVurl).Result;
-			using HttpContent FileContent = response.Content;
-			FileContent.CopyToAsync(new FileStream(Path.Combine(Utilities.GetAssemblyDirectory(), "update.zip"), FileMode.Create));
-			Utilities.DeleteAndExtract(Utilities.GetAssemblyDirectory());
-			Dispatcher.Invoke(Close);
-			Dispatcher.Invoke(Application.Current.Shutdown);
-		}
+            if (gitV.CompareTo(asmV) < 0)
+            {
+                main.ApplicationVersion = asmV!.ToString() + " - Developer Edition";
+                Task.Run(() =>
+                {
+                    main.Init().ContinueWith(CloseSplashMain);
+                });
+            }
+            else if (gitV.CompareTo(asmV) > 0)
+            {
+                main.ApplicationVersion = asmV!.ToString() + " - Outdated";
+                Dispatcher.Invoke(Update);
+            }
+            else if (gitV.CompareTo(asmV) == 0)
+            {
+                main.ApplicationVersion = asmV!.ToString() + " - Main";
+                Task.Run(() =>
+                {
+                    main.Init().ContinueWith(CloseSplashMain);
+                });
+            }
+        }
 
-		private void CloseSplash(object? info)
-		{
-			Dispatcher.Invoke(CloseSplashMain);
-		}
+        private void Update()
+        {
+            string latestVurl = (string)stats!["assets"]![0]!["browser_download_url"]!;
+            using HttpResponseMessage response = new HttpClient().GetAsync(latestVurl).Result;
+            using HttpContent FileContent = response.Content;
+            FileContent.CopyToAsync(new FileStream(Path.Combine(Utilities.GetAssemblyDirectory(), "update.zip"), FileMode.Create));
+            Utilities.DeleteAndExtract(Utilities.GetAssemblyDirectory());
+            Dispatcher.Invoke(Application.Current.Shutdown);
+        }
 
-		private void CloseSplashMain()
+        private void CloseSplashMain(Task t)
 		{
-			Dispatcher.Invoke(App.GetApp!.MainWindow.Show);
+			Dispatcher.Invoke(()=> { App.GetApp!.MainWindow.Show(); });
 			Dispatcher.Invoke(Close);
 		}
 

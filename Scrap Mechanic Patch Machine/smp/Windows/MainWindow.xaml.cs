@@ -1,5 +1,4 @@
-﻿// smp.MainWindow
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,16 +6,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Xml.XPath;
 using Microsoft.Win32;
 using smp;
 using smp.Network;
+using smp.Patches;
 
 namespace smp
 {
@@ -25,74 +29,76 @@ namespace smp
     /// </summary>
     public partial class MainWindow : Window
     {
-		public static Dictionary<string, Patch[]>? PatchList;
+		public Dictionary<string, Patch[]> PatchList { get; set; } = new();
+		public GameInfo GameVersionInfo = default;
+		public List<string> PatchesToApply { get; set; } = new();
+        public string GamePath { get; set; } = string.Empty;
+		public static MainWindow GetMainWindow { get; set; } = new();
+        public string ApplicationVersion { get; set; }
+        public string GameHash { get; set; } = string.Empty;
+        private HttpClient LocalWebClient { get; } = new();
 
-		public static GameInfo GameVersionInfo;
-
-		public static List<string>? PatchesToApply;
-
-		public static string? GameDirectory;
-
-		public static MainWindow? GetMainWindow;
-
-		public string? ApplicationVersion;
-		public string? GameHash;
-
-        private static string? BaseGitUrl = "https://raw.githubusercontent.com/TheGuy920/Scrap-Mechanic-Patch-Machine/main";
-
-		private static HttpClient? LocalWebClient = new HttpClient();
-
+        private static readonly string BaseGitUrl = "https://raw.githubusercontent.com/TheGuy920/Scrap-Mechanic-Patch-Machine/main";
 		public MainWindow()
 		{
 			GetMainWindow = this;
-			GameDirectory = GetGameLocation();
-			GameVersionInfo = FindGameVersion(GameDirectory);
-			GameHash = GameVersionInfo.sHash;
-			PatchList = LoadPatchList(GameVersionInfo);
-			if (GameVersionInfo.Version == null)
-			{
-				ScrapeVersion(GameDirectory);
-			}
-			PatchesToApply = new List<string>();
-			base.Activated += GetMainWindow!.MainWindow_Activated;
-			InitializeComponent();
-			LocalWebClient!.DefaultRequestHeaders.Add("User-Agent", "smpm");
-			Activate();
-			Focus();
-			LoadUIInfo();
+			this.InitializeComponent();
+            this.Closed += MainWindow_Closed;
+        }
+
+        private void MainWindow_Closed(object? sender, EventArgs e)
+        {
+			Task.Run(Suicide);
+        }
+
+		private async void Suicide()
+		{
+			await Task.Delay(1000);
+			this.Dispatcher.Invoke(()=> { App.GetApp!.Shutdown(); });
 		}
+
+        public Task Init()
+		{
+            this.GamePath = GetGamePath();
+            this.GameVersionInfo = FindGameVersion(this.GamePath);
+            this.GameHash = this.GameVersionInfo.sHash;
+            this.PatchList = this.LoadPatchList(this.GameVersionInfo);
+            if (this.GameVersionInfo.Version == null)
+            {
+                this.GameVersionInfo = this.ScrapeVersion(this.GamePath);
+            }
+            this.PatchesToApply = new List<string>();
+            this.LocalWebClient.DefaultRequestHeaders.Add("User-Agent", "smpm");
+            this.Dispatcher.Invoke(LoadPatchItems);
+
+			return Task.CompletedTask;
+        }
 
 		private void LoadUIInfo()
 		{
-			GAMEHASH.Text = Convert.ToHexString(GetGameHash(GameDirectory!));
-			GAMEDIR.Text = GameDirectory;
-			GAMEVER.Text = ((GameVersionInfo.Version == null) ? "Unknown" : GameVersionInfo.Version);
-			if (GameVersionInfo.PatchesInstalled > 0)
+            this.GAMEHASH.Text = Convert.ToHexString(GetGameHash(this.GamePath));
+            this.GAMEDIR.Text = this.GamePath;
+            this.GAMEVER.Text = this.GameVersionInfo.Version ?? "Unknown";
+			if (this.GameVersionInfo.PatchesInstalled > 0)
 			{
-				GAMEVER.Text += " - PATCHED";
+                this.GAMEVER.Text += " - PATCHED";
 			}
-			PATCHCOUNT.Text = GameVersionInfo.PatchesInstalled.ToString();
-			AssemblyVersion.Text = ApplicationVersion;
+            this.PATCHCOUNT.Text = this.GameVersionInfo.PatchesInstalled.ToString();
+            this.AssemblyVersion.Text = this.ApplicationVersion;
 #if DEBUG
 			Debug.Log("UI Updated");
-			Debug.Log(GameDirectory!);
-			Debug.Log(GameVersionInfo.PatchesInstalled);
-			Debug.Log(GameHash!);
-			Debug.Log(Convert.ToHexString(GetGameHash(GameDirectory)));
-			Debug.Log((GameVersionInfo.Version == null) ? "Unknown" : GameVersionInfo.Version);
-			Debug.Log((ApplicationVersion == null) ? "Version Not Loaded" : ApplicationVersion);
+			Debug.Log($"GamePath: {GamePath!}");
+			Debug.Log($"PatchesInstalled: {GameVersionInfo.PatchesInstalled}");
+			Debug.Log($"GameHash: {this.GameHash!}");
+			Debug.Log($"GameVersionInfo: {GameVersionInfo.Version ?? "Unknown"}");
+			Debug.Log($"ApplicationVersion: {this.ApplicationVersion ?? "Version Not Loaded"}");
 #endif
-		}
-
-		private void MainWindow_Activated(object? sender, EventArgs e)
-		{
-			LoadPatchItems();
 		}
 
 		public void LoadPatchItems()
 		{
-			PatchListPanel.Children.Clear();
-			foreach (KeyValuePair<string, Patch[]> patch in PatchList!)
+            this.PatchListPanel.Children.Clear();
+			foreach (KeyValuePair<string, Patch[]> patch in this.PatchList)
 			{
 				Border PatchItem = (Border)((DataTemplate)FindResource("PatchTemplate")).LoadContent();
 				((TextBox)((StackPanel)((Grid)PatchItem.Child).Children[0]).Children[0]).Text = patch.Key.Replace("-", " ");
@@ -103,7 +109,7 @@ namespace smp
 				for (int i = 0; i < value.Length; i++)
 				{
 					Patch item = value[i];
-					if (item.PatchInfo.sHash.Equals(GameVersionInfo.sHash))
+					if (item.PatchInfo.sHash.Equals(this.GameVersionInfo.sHash))
 					{
 						patched = Convert.ToInt32(item.PatchInfo.Patched);
 						Supported = Convert.ToInt32(value: true);
@@ -114,22 +120,26 @@ namespace smp
 				((Grid)((Grid)PatchItem.Child).Children[2]).Tag = Supported.ToString();
 				if (Supported.Equals(1))
 				{
-					((Grid)((Grid)PatchItem.Child).Children[2]).Background = Brushes.Transparent;
-				}
+                    ((Grid)((Grid)PatchItem.Child).Children[2]).Background = patched == 1 ? Brushes.Green : Brushes.Transparent;
+                }
 				((TextBox)((Grid)PatchItem.Child).Children[1]).Text = description;
 				((CheckBox)((StackPanel)((Grid)PatchItem.Child).Children[0]).Children[1]).Tag = patched.ToString();
 				((CheckBox)((StackPanel)((Grid)PatchItem.Child).Children[0]).Children[1]).IsChecked = patched == 1;
-				PatchListPanel.Children.Add(PatchItem);
+                this.PatchListPanel.Children.Add(PatchItem);
 			}
-			ListUpdated();
-		}
+			this.ListUpdated();
 
-		public static string GetGameLocation()
+            this.Activate();
+            this.Focus();
+            // this.LoadUIInfo();
+        }
+
+		public static string GetGamePath()
 		{
-			string? steamPath = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam", "InstallPath", null) as string;
-			if (steamPath is null) throw new Exception("Steam not detected");
+            if (Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam", "InstallPath", null) is not string steamPath)
+				throw new Exception("Steam not detected");
 
-			string FileContents = File.ReadAllText(Path.Combine(steamPath, "steamapps", "libraryfolders.vdf"));
+            string FileContents = File.ReadAllText(Path.Combine(steamPath, "steamapps", "libraryfolders.vdf"));
 
 #if DEBUG
 			Debug.Log($"Loaded Steam Location: {steamPath}");
@@ -157,10 +167,10 @@ namespace smp
 
 		private static byte[] GetGameHash(string sm_path)
         {
-			try {
-				FileStream stream = new FileStream(sm_path, FileMode.Open);
-				SHA256 Sha256 = SHA256.Create();
-				byte[] GameHashByteArray = Sha256.ComputeHash(stream);
+			try 
+			{
+				FileStream stream = new(sm_path, FileMode.Open);
+                byte[] GameHashByteArray = GetHash(stream);
 				stream.Close();
 				return GameHashByteArray;
 			} 
@@ -176,9 +186,22 @@ namespace smp
 			return GameVersion.GetVersion(hash);
 		}
 
-		public static void ScrapeVersion(string location)
+		public static byte[] GetHash(Stream stream)
 		{
-			Dictionary<byte[], List<Patch>> VersionPatchList = new Dictionary<byte[], List<Patch>>();
+			MemoryStream memoryStream = new();
+			if (stream is not MemoryStream mstream)
+				stream.CopyTo(memoryStream);
+			else
+                memoryStream = mstream;
+
+            memoryStream.Position = 0;
+            SHA256 Sha256 = SHA256.Create();
+            return Sha256.ComputeHash(memoryStream);
+        }
+
+		public GameInfo ScrapeVersion(string location)
+		{
+			Dictionary<byte[], List<Patch>> VersionPatchList = new();
 			foreach (KeyValuePair<string, Patch[]> item in PatchList!)
 			{
 				Patch[] value = item.Value;
@@ -192,7 +215,7 @@ namespace smp
 					}
 					VersionPatchList.Add(patch2.PatchInfo.bHash, new List<Patch>
 					{
-						new Patch
+						new() 
 						{
 							PatchName = item.Key,
 							PatchInfo = patch2.PatchInfo
@@ -200,17 +223,23 @@ namespace smp
 					});
 				}
 			}
-			foreach (KeyValuePair<byte[], List<Patch>> version in new Dictionary<byte[], List<Patch>>(VersionPatchList))
+
+            FileStream stream = new(location, FileMode.Open);
+            MemoryStream memoryStream = new();
+            stream.CopyTo(memoryStream);
+			stream.Close();
+            int counter = 0;
+
+            foreach (KeyValuePair<byte[], List<Patch>> version in new Dictionary<byte[], List<Patch>>(VersionPatchList))
 			{
-				FileStream stream = new FileStream(location, FileMode.Open);
-				MemoryStream memoryStream = new MemoryStream();
-				stream.CopyTo(memoryStream);
-				byte[] sm = memoryStream.ToArray();
-				for (int j = 0; j < VersionPatchList[version.Key].Count; j++)
+                memoryStream.Position = 0;
+                byte[] sm = memoryStream.GetBuffer();
+
+                for (int j = 0; j < VersionPatchList[version.Key].Count; j++)
 				{
 					PatchInfo info = VersionPatchList[version.Key][j].PatchInfo;
 					int position = sm.Locate(info.Search);
-					stream.Position = position + info.Search.Length;
+                    memoryStream.Position = position + info.Search.Length;
 					if (info.ByteList)
 					{
 						if (sm[(position + info.Search.Length)..(position + info.Search.Length + info.Patchbytes.Length)].equals(info.Patchbytes))
@@ -223,14 +252,15 @@ namespace smp
 									Patched = true
 								}
 							};
-							byte[] targetbytes = info.Targetbytes;
+
+                            byte[] targetbytes = info.Targetbytes;
 							foreach (byte Byte in targetbytes)
 							{
-								stream.WriteByte(Byte);
-							}
+                                memoryStream.WriteByte(Byte);
+                            }
 						}
 					}
-					else if (sm[stream.Position].Equals(info.Patchbyte))
+					else if (sm[memoryStream.Position].Equals(info.Patchbyte))
 					{
 						VersionPatchList[version.Key][j] = new Patch
 						{
@@ -240,28 +270,22 @@ namespace smp
 								Patched = true
 							}
 						};
-						stream.WriteByte(info.Targetbyte);
-					}
+                        memoryStream.WriteByte(info.Targetbyte);
+                    }
 				}
 
-				stream.Close();
-				stream = new FileStream(location, FileMode.Open);
-				SHA256 Sha256 = SHA256.Create();
-				byte[] GameHashByteArray = new byte[0];
-				GameHashByteArray = Sha256.ComputeHash(stream);
-				stream.Close();
-				string GameHash = string.Join(null, Array.ConvertAll(GameHashByteArray, (byte s) => s.ToString("x")));
-				PatchInfo patchInfo = new PatchInfo(GameVersion.GetVersion(GameHash));
-				stream = new FileStream(location, FileMode.Open);
-				memoryStream = new MemoryStream();
-				stream.CopyTo(memoryStream);
-				sm = memoryStream.ToArray();
-				int counter = 0;
-				for (int i = 0; i < VersionPatchList[version.Key].Count; i++)
+                // Compute new hash
+                byte[] GameHashByteArray = GetHash(memoryStream);
+				string GameHash = string.Join(null, Array.ConvertAll(GameHashByteArray, (byte s) => s.ToString("x2")));
+				PatchInfo patchInfo = new(GameVersion.GetVersion(GameHash));
+                memoryStream.Position = 0;
+                sm = memoryStream.GetBuffer();
+				
+                for (int i = 0; i < VersionPatchList[version.Key].Count; i++)
 				{
 					PatchInfo info2 = VersionPatchList[version.Key][i].PatchInfo;
 					int position2 = sm.Locate(info2.Search);
-					stream.Position = position2 + info2.Search.Length;
+                    memoryStream.Position = position2 + info2.Search.Length;
 					if (info2.ByteList)
 					{
 						if (sm[(position2 + info2.Search.Length)..(position2 + info2.Search.Length + info2.Targetbytes.Length)].equals(info2.Targetbytes) && info2.Patched)
@@ -274,15 +298,10 @@ namespace smp
 									Patched = true
 								}
 							};
-							byte[] targetbytes = info2.Patchbytes;
-							foreach (byte Byte2 in targetbytes)
-							{
-								stream.WriteByte(Byte2);
-							}
 							counter++;
 						}
 					}
-					else if (sm[stream.Position].Equals(info2.Targetbyte) && info2.Patched)
+					else if (sm[memoryStream.Position].Equals(info2.Targetbyte) && info2.Patched)
 					{
 						VersionPatchList[version.Key][i] = new Patch
 						{
@@ -292,64 +311,113 @@ namespace smp
 								Patched = true
 							}
 						};
-						stream.WriteByte(info2.Patchbyte);
-						counter++;
+                        counter++;
 					}
-				}
-				stream.Close();
+                }
+
 				if (patchInfo.Version == null)
 				{
 					continue;
 				}
-				PatchList.Clear();
+
+                this.PatchList.Clear();
+
 				foreach (KeyValuePair<byte[], List<Patch>> item2 in VersionPatchList)
 				{
 					foreach (Patch patch in item2.Value)
 					{
-						Patch patch3 = new Patch(patch);
-						patch3.PatchInfo = new PatchInfo(patch.PatchInfo)
-						{
-							Version = patchInfo.Version
-						};
-						Patch nPatch = patch3;
-						if (PatchList.ContainsKey(nPatch.PatchName))
-						{
-							Patch[] NewPatchArray = new Patch[PatchList[nPatch.PatchName].Length+1];
-							for(int m = 0; m < PatchList[nPatch.PatchName].Length; m++)
+                        Patch patch3 = new(patch)
+                        {
+                            PatchInfo = new PatchInfo(patch.PatchInfo)
                             {
-								NewPatchArray[m] = PatchList[nPatch.PatchName][m];
+                                Version = patchInfo.Version
+                            }
+                        };
+                        Patch nPatch = patch3;
+						if (this.PatchList.ContainsKey(nPatch.PatchName))
+						{
+							Patch[] NewPatchArray = new Patch[this.PatchList[nPatch.PatchName].Length+1];
+							for(int m = 0; m < this.PatchList[nPatch.PatchName].Length; m++)
+                            {
+								NewPatchArray[m] = this.PatchList[nPatch.PatchName][m];
 							}
-							NewPatchArray[NewPatchArray.Length-1] = nPatch;
-							PatchList[nPatch.PatchName] = NewPatchArray;
+							NewPatchArray[^1] = nPatch;
+                            this.PatchList[nPatch.PatchName] = NewPatchArray;
 						}
 						else
 						{
-							PatchList.Add(nPatch.PatchName, new Patch[1] { nPatch });
+                            this.PatchList.Add(nPatch.PatchName, new Patch[1] { nPatch });
 						}
 					}
 				}
-				GameVersionInfo = new GameInfo(patchInfo, counter);
+				return new(patchInfo, counter);
 			}
+			return new();
 		}
 
-		public static Dictionary<string, Patch[]> LoadPatchList(GameInfo gameInfo)
+		public Dictionary<string, Patch[]> LoadPatchList(GameInfo gameInfo)
 		{
-			using HttpResponseMessage response = LocalWebClient!.GetAsync(BaseGitUrl + "/Patches/PatchList").Result;
-			using HttpContent content = response.Content;
-			string tmp0 = content.ReadAsStringAsync().Result.Replace("\r", "").Replace("\n", ":");
+			string tmp0 = string.Empty;
+            Dictionary<string, Patch[]> map = new();
+            var patchesFile = new FileInfo(Path.Combine(GameVersion.PatchDirectory.FullName, "PatchList"));
+            try
+			{
+				using HttpResponseMessage response = this.LocalWebClient.GetAsync(BaseGitUrl + "/Patches/PatchList").Result;
+				using HttpContent content = response.Content;
+                tmp0 = content.ReadAsStringAsync().Result.Replace("\r", "").Replace("\n", ":");
+				if (!patchesFile.Directory.Exists)
+				{
+                    patchesFile.Directory.Create();
+                }
+				foreach (string item in tmp0.Split(":"))
+				{
+                    patchesFile.Directory.CreateSubdirectory(item);
+                }
+                File.WriteAllText(patchesFile.FullName, tmp0);
+            }
+			catch
+			{
+                if (patchesFile.Exists)
+				{
+					this.Dispatcher.Invoke(() => { 
+						this.Title = "Offline - " + this.Title;
+                    });
+                    tmp0 = new StreamReader(patchesFile.OpenRead()).ReadToEnd();
+                }
+			}
+
+			if (tmp0 == string.Empty)
+				return map;
+			
 			while (tmp0.Contains("::"))
 			{
 				tmp0 = tmp0.Replace("::", ":");
 			}
 			string[] list = tmp0.Split(":");
-			Dictionary<string, Patch[]> map = new Dictionary<string, Patch[]>();
+
 			for (int i = 0; i < list.Length; i++)
 			{
-				HttpClient? localWebClient = LocalWebClient;
-				string url = BaseGitUrl + "/Patches/" + list[i] + "/" + list[i];
-				using HttpResponseMessage r = localWebClient!.GetAsync(url).Result;
-				using HttpContent c = r.Content;
-				string tmp1 = c.ReadAsStringAsync().Result.Replace("\r", "").Replace("\n", ":").Replace(Environment.NewLine, "");
+				string tmp1 = string.Empty;
+                var patchFile = new FileInfo(Path.Combine(GameVersion.PatchDirectory.FullName, list[i], list[i]));
+                try
+				{
+					HttpClient? localWebClient = this.LocalWebClient;
+					string url = BaseGitUrl + "/Patches/" + list[i] + "/" + list[i];
+					using HttpResponseMessage r = localWebClient!.GetAsync(url).Result;
+					using HttpContent c = r.Content;
+					tmp1 = c.ReadAsStringAsync().Result.Replace("\r", "").Replace("\n", ":").Replace(Environment.NewLine, "");
+					if (!patchFile.Directory.Exists)
+						patchFile.Directory.Create();
+                    File.WriteAllText(patchFile.FullName, tmp1);
+                }
+				catch
+				{
+                    if (patchFile.Exists)
+                    {
+                        tmp1 = new StreamReader(patchFile.OpenRead()).ReadToEnd();
+                    }
+                }
+
 				while (tmp1.Contains("::"))
 				{
 					tmp1 = tmp1.Replace("::", ":");
@@ -376,21 +444,43 @@ namespace smp
 			return map;
 		}
 
-		public static Patch LoadPatch(Patch patch)
+		public Patch LoadPatch(Patch patch)
 		{
 			PatchInfo v = patch.PatchInfo;
-			HttpClient? localWebClient = LocalWebClient;
-			string url = $"{BaseGitUrl}/Patches/{patch.PatchName}/{patch.PatchInfo.sHash}";
+			string[] contentList;
+			string description;
+            var descriptionFile = new FileInfo(Path.Combine(GameVersion.PatchDirectory.FullName, patch.PatchName, "desc"));
+			var contentFile = new FileInfo(Path.Combine(GameVersion.PatchDirectory.FullName, patch.PatchName, patch.PatchInfo.sHash));
+            try
+			{
+				HttpClient? localWebClient = this.LocalWebClient;
+				string url = $"{BaseGitUrl}/Patches/{patch.PatchName}/{patch.PatchInfo.sHash}";
 #if DEBUG
-			Debug.Log(url);
+				Debug.Log(url);
 #endif
-			string[] contentList = localWebClient!.GetAsync(url).Result.Content.ReadAsStringAsync().Result.Split('\n');
-			string description = LocalWebClient!.GetAsync(BaseGitUrl + "/Patches/" + patch.PatchName + "/desc").Result.Content.ReadAsStringAsync().Result;
-			if (contentList[0].Length == 64 && !contentList[0].Contains(','))
+                contentList = localWebClient!.GetAsync(url).Result.Content.ReadAsStringAsync().Result.Split('\n');
+                description = this.LocalWebClient.GetAsync(BaseGitUrl + "/Patches/" + patch.PatchName + "/desc").Result.Content.ReadAsStringAsync().Result;
+				
+				if (!descriptionFile.Directory.Exists)
+                    descriptionFile.Directory.Create();
+
+                if (!contentFile.Directory.Exists)
+                    contentFile.Directory.Create();
+
+                File.WriteAllText(descriptionFile.FullName, description);
+                File.WriteAllLines(contentFile.FullName, contentList);
+            }
+			catch
+			{
+				contentList = File.ReadAllLines(contentFile.FullName);
+				description = File.ReadAllText(descriptionFile.FullName);
+			}
+
+            if (contentList[0].Length == 64 && !contentList[0].Contains(','))
 			{
 				v.sHash = contentList[0];
 				patch.PatchInfo = v;
-				return LoadPatch(patch);
+				return this.LoadPatch(patch);
 			}
 			v.bHash = Array.ConvertAll(v.sHash.SplitInParts(2), (string s) => (byte)Convert.ToInt32(s, 16));
 			v.Search = Array.ConvertAll(contentList[0].Split(","), (string s) => byte.Parse(s));
@@ -411,7 +501,7 @@ namespace smp
 			{
 				throw new Exception("Target and Patch length do not match");
 			}
-			Patch result = default(Patch);
+			Patch result = default;
 			result.PatchName = patch.PatchName;
 			result.PatchInfo = v;
 			return result;
@@ -419,25 +509,25 @@ namespace smp
 
 		public void ListUpdated()
 		{
-			if (PatchesToApply!.Count > 0)
+			if (this.PatchesToApply.Count > 0)
 			{
-				APPLY.IsEnabled = true;
-				CANCEL.IsEnabled = true;
+				this.APPLY.IsEnabled = true;
+                this.CANCEL.IsEnabled = true;
 			}
 			else
 			{
-				APPLY.IsEnabled = false;
-				CANCEL.IsEnabled = false;
+                this.APPLY.IsEnabled = false;
+                this.CANCEL.IsEnabled = false;
 			}
-			if (GameVersionInfo.PatchesInstalled == 0)
+			if (this.GameVersionInfo.PatchesInstalled == 0)
 			{
-				REMOVEALL.IsEnabled = false;
+                this.REMOVEALL.IsEnabled = false;
 			}
 			else
 			{
-				REMOVEALL.IsEnabled = true;
+                this.REMOVEALL.IsEnabled = true;
 			}
-			LoadUIInfo();
+			this.LoadUIInfo();
 		}
 
 		private void Button_PreviewMouseUp(object sender, MouseButtonEventArgs e)
@@ -447,7 +537,7 @@ namespace smp
 				((Grid)sender).Opacity = 0.2;
 				CheckBox cb = (CheckBox)((StackPanel)((Grid)((Grid)sender).Parent).Children[0]).Children[1];
 				cb.IsChecked = !cb.IsChecked;
-				CheckBoxChanged(cb, (TextBox)((StackPanel)((Grid)((Grid)sender).Parent).Children[0]).Children[0]);
+                this.CheckBoxChanged(cb, (TextBox)((StackPanel)((Grid)((Grid)sender).Parent).Children[0]).Children[0]);
 			}
 		}
 
@@ -455,7 +545,7 @@ namespace smp
 		{
 			if (((Grid)sender).Tag.Equals("1"))
 			{
-				((Grid)sender).Background = Brushes.LightBlue;
+				((Grid)sender).Background = Brushes.Blue;
 			}
 		}
 
@@ -463,7 +553,23 @@ namespace smp
 		{
 			if (((Grid)sender).Tag.Equals("1"))
 			{
-				((Grid)sender).Background = Brushes.Transparent;
+                CheckBox cb = (CheckBox)((StackPanel)((Grid)((Grid)sender).Parent).Children[0]).Children[1];
+				string patchItem = ((TextBox)((StackPanel)((Grid)((Grid)sender).Parent).Children[0]).Children[0]).Text.Replace(" ", "-");
+				var brush = cb.IsChecked == true ? Brushes.Green : Brushes.Transparent;
+				for (int p = 0; p < this.PatchList[patchItem].Length; p++)
+				{
+					if (this.PatchList[patchItem][p].PatchInfo.sHash.Equals(this.GameVersionInfo.sHash))
+					{
+						if (this.PatchList[patchItem][p].PatchInfo.Patched
+							&& cb.IsChecked == false)
+                            brush = Brushes.IndianRed;
+                        else if (!this.PatchList[patchItem][p].PatchInfo.Patched
+                            && cb.IsChecked == true)
+							brush = Brushes.Orange;
+						break;
+					}
+				}
+                ((Grid)sender).Background = brush;
 			}
 		}
 
@@ -477,87 +583,87 @@ namespace smp
 
 		private void CheckBoxChanged(CheckBox sender, TextBox tb)
 		{
-			if (int.Parse(sender.Tag.ToString()) != Convert.ToInt32(sender.IsChecked))
+			if (int.Parse(sender.Tag.ToString()!) != Convert.ToInt32(sender.IsChecked))
 			{
-				PatchesToApply!.Add(tb.Text.Replace(" ", "-"));
+                this.PatchesToApply.Add(tb.Text.Replace(" ", "-"));
 			}
-			else if (PatchesToApply!.Contains(tb.Text.Replace(" ", "-")))
+			else if (this.PatchesToApply.Contains(tb.Text.Replace(" ", "-")))
 			{
-				PatchesToApply!.Remove(tb.Text.Replace(" ", "-"));
+                this.PatchesToApply.Remove(tb.Text.Replace(" ", "-"));
 			}
-			ListUpdated();
+            this.ListUpdated();
 		}
 
 		private void APPLY_PreviewMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			foreach (string patchItem in PatchesToApply!)
+			foreach (string patchItem in this.PatchesToApply)
 			{
-				for (int p = 0; p < PatchList![patchItem].Length; p++)
+				for (int p = 0; p < this.PatchList[patchItem].Length; p++)
 				{
-					if (PatchList![patchItem][p].PatchInfo.sHash.Equals(GameVersionInfo.sHash))
+					if (this.PatchList[patchItem][p].PatchInfo.sHash.Equals(this.GameVersionInfo.sHash))
 					{
-						Operations.Patch(GameDirectory, PatchList![patchItem][p].PatchInfo, !PatchList![patchItem][p].PatchInfo.Patched);
-						if (PatchList![patchItem][p].PatchInfo.Patched)
+						Operations.Patch(this.GamePath, this.PatchList[patchItem][p].PatchInfo, !this.PatchList[patchItem][p].PatchInfo.Patched);
+						if (this.PatchList[patchItem][p].PatchInfo.Patched)
 						{
-							GameVersionInfo.PatchesInstalled--;
+                            this.GameVersionInfo.PatchesInstalled--;
 						}
 						else
 						{
-							GameVersionInfo.PatchesInstalled++;
+                            this.GameVersionInfo.PatchesInstalled++;
 						}
-						PatchList![patchItem][p] = new Patch(PatchList![patchItem][p])
+                        this.PatchList[patchItem][p] = new Patch(this.PatchList[patchItem][p])
 						{
-							PatchInfo = new PatchInfo(PatchList![patchItem][p].PatchInfo)
+							PatchInfo = new PatchInfo(this.PatchList[patchItem][p].PatchInfo)
 							{
-								Patched = !PatchList![patchItem][p].PatchInfo.Patched
+								Patched = !this.PatchList[patchItem][p].PatchInfo.Patched
 							}
 						};
 					}
 				}
 			}
-			PatchesToApply!.Clear();
-			LoadPatchItems();
+            this.PatchesToApply.Clear();
+            this.LoadPatchItems();
 		}
 
 		private void REMOVEALL_PreviewMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			foreach (KeyValuePair<string, Patch[]> patchList in PatchList!)
+			foreach (KeyValuePair<string, Patch[]> patchList in this.PatchList)
 			{
 				for (int p = 0; p < patchList.Value.Length; p++)
 				{
 					if (patchList.Value[p].PatchInfo.Patched)
 					{
-						PatchList![patchList.Key][p].PatchInfo = new PatchInfo(patchList.Value[p].PatchInfo)
+                        this.PatchList![patchList.Key][p].PatchInfo = new PatchInfo(patchList.Value[p].PatchInfo)
 						{
 							Patched = false
 						};
-						Operations.Patch(GameDirectory, PatchList![patchList.Key][p].PatchInfo);
+						Operations.Patch(GamePath, this.PatchList[patchList.Key][p].PatchInfo);
 					}
 				}
 			}
-			GameVersionInfo.PatchesInstalled = 0;
-			PatchesToApply!.Clear();
-			LoadPatchItems();
+            this.GameVersionInfo.PatchesInstalled = 0;
+            this.PatchesToApply.Clear();
+            this.LoadPatchItems();
 		}
 
 		private void CANCEL_PreviewMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			foreach (Border child in PatchListPanel.Children)
+			foreach (Border child in this.PatchListPanel.Children)
 			{
 				StackPanel obj = (StackPanel)((Grid)child.Child).Children[0];
 				TextBox tb = (TextBox)obj.Children[0];
 				CheckBox cb = (CheckBox)obj.Children[1];
 				string PatchName = tb.Text.Replace(" ", "-");
-				for (int p = 0; p < PatchList![PatchName].Length; p++)
+				for (int p = 0; p < this.PatchList[PatchName].Length; p++)
 				{
-					if (PatchList![PatchName][p].PatchInfo.Patched != cb.IsChecked)
+					if (this.PatchList[PatchName][p].PatchInfo.Patched != cb.IsChecked)
 					{
 						cb.IsChecked = !cb.IsChecked;
 					}
 				}
 			}
-			PatchesToApply!.Clear();
-			ListUpdated();
+            this.PatchesToApply.Clear();
+            this.ListUpdated();
 		}
 	}
 }

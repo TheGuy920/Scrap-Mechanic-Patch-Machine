@@ -73,6 +73,10 @@ namespace smp
 		private static bool init = false;
 		public static void Log(object info)
         {
+#if DEBUG 
+			System.Diagnostics.Debug.WriteLine(info);
+#endif
+
 			string log = Path.Combine(Utilities.GetAssemblyDirectory(), "log.txt");
 			string time = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
