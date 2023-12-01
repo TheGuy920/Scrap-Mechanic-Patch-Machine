@@ -88,14 +88,14 @@ namespace smp
 
         private void CloseSplashMain(Task t)
 		{
-			Dispatcher.Invoke(()=> { App.GetApp!.MainWindow.Show(); });
-			Dispatcher.Invoke(Close);
+			this.Dispatcher.Invoke(()=> { App.GetApp!.MainWindow.Show(); });
+            this.Dispatcher.Invoke(Close);
 		}
 
 		private void Window_LostFocus(object sender, RoutedEventArgs e)
 		{
-			Dispatcher.Invoke(Activate);
-			Dispatcher.Invoke(Focus);
+            this.Dispatcher.Invoke(Activate);
+            this.Dispatcher.Invoke(Focus);
 		}
 	}
 }
